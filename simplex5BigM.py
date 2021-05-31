@@ -4,54 +4,50 @@ import warnings
 
 def simplex(type, A, B, C, D, M):
 
-    # m -- number of restrictions
-    # n -- number of variables
-    (m, n)= A.shape
-
     basic_vars = []
+    
+    (m, n)= A.shape	#m = |restricoes| , n = |variables|
     count = n
 
     # matrix with new variables
     R = np.eye(m)
 
-    # values of the new variables
-    P = B
+    Btemp = B
 
-    # artificial variables position indicator
-    artificial= []
+    artificial= []	# as posicoes
 
     for i in range(m):
-        if D[i] == 1:		# <=
-            # add the slack variable to objective function
+        if D[i] == '<=':	
+            # agregar a var de folga a Z
             C = np.vstack((C, [[0]]))
 
-            # regist the slack variable as basic variable
+            # colocar a var de folga como básica
             count = count + 1
             basic_vars = basic_vars + [count-1]
 
             artificial = [artificial, 0]
 
-        elif D[i] == 0:	# =
-            # add the artificial variable to objective function with the big M value
+        elif D[i] == '=':
+            # agregar a var artificial a Z com o valor M
             if type == 'min':
                 C = np.vstack((C, [[M]]))
             else:
                 C = np.vstack((C, [[-M]]))
 
-            # regist the artificial variable as basic variable
+            # colocar a var artificial como basica
             count = count + 1
             basic_vars = basic_vars + [count-1]
 
             artificial = [artificial, 1]
-        elif D[i] == -1:  # >=
-            # add the surplus and artificial variables to objective function
+        elif D[i] == '>=':  # >=
+            # adicionar o excedente e as vars artificiais a Z
             if type == 'min':
                 C = np.vstack((C, [[0], [M]]))
             else:
                 C = np.vstack((C, [[0], [-M]]))
 
             R = repeatColumnNegative(R, count + 1 - n)
-            P = insertZeroToCol(P, count + 1 - n)
+            Btemp = colocarZeroToCol(Btemp, count + 1 - n)
 
             # regist the artificial variable as basic variable
             count = count + 2
@@ -62,7 +58,7 @@ def simplex(type, A, B, C, D, M):
             print("invalid case")
 
     # current vertex
-    X = np.vstack((np.zeros((n, 1)), P))
+    X = np.vstack((np.zeros((n, 1)), Btemp))
 
     # add new variables to matrix A
     A = np.hstack((A, R))
@@ -89,7 +85,7 @@ def simplex(type, A, B, C, D, M):
 
     if z_optimal != 0:
         for i in range(m):
-            if D[i] == 0 or D[i] == -1:
+            if D[i] == '=' or D[i] == '>=':
                 if type == 'min':
                     st[0,:]= st[0,:] + M * st[1+i,:]
                 else:
@@ -123,10 +119,10 @@ def simplex(type, A, B, C, D, M):
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                #print('row,cols', st[1:rows, cols-1] ,'/', st[1: rows, iw] )
+                
                 bi = st[1:rows, cols-1] 
                 colPivot = st[1: rows, iw]
-                #Evitar que divida si el divisor 'st[1: rows, iw]' es negativo  o <= 0
+                # registra inf se o divisor e <= 0
                 Tarr = []
                 for i in range(len(colPivot)):
                     print('colPivot', i, '->', colPivot[i])
@@ -141,33 +137,28 @@ def simplex(type, A, B, C, D, M):
             R = np.logical_and(T != np.inf, T >= 0)
             print('R', R)
             
-            (k, ik) = minWithMask(T, R)
-            print('k = ', k, ' ik =', ik)
+            (k, ik) = minBlandWithMask(T, R)
+            #print('k = ', k, ' ik =', ik)
 
-            # current z row
+            # Z novo
             cz = st[[0],:]
 
-            # pivot element
             pivot = st[ik+1, iw]
 
-            # pivot row divided by pivot element
+            # linha pivOt dividida por elemento pivOt
             prow = st[ik+1,:] / pivot
-            print('oki',st[ik+1,:] / pivot)
-
             st = st - st[:, [iw]] * prow
 
-            # pivot row is a special case
+            # casos especiais
             st[ik+1,:]= prow
 
-            # new basic variable
-            print('b iw',ik, iw)
+            # nova var basica
+            #print('b iw',ik, iw)
             basic_vars[ik] = iw
 
-            print('\ncurrent basic variables\n')
+            print('\nAtual variavel basica\n')
             print(basic_vars)
-            #break
 
-            # new vertex
             basic = st[:, cols-1]
             X = np.zeros((count, 1))
 
@@ -176,10 +167,10 @@ def simplex(type, A, B, C, D, M):
             for k in range(t):
                 X[basic_vars[k]] = basic[k+1]
 
-            print('\ncurrent optimal point\n')
+            print('\nAtual otimo\n')
             print(X)
 
-            # new z value
+            # Novo resultado de Z
             C = -np.transpose(cz[[0], 0:count])
 
             z_optimal = cz[0, cols-1] + np.matmul(np.transpose(C), X)
@@ -191,24 +182,25 @@ def simplex(type, A, B, C, D, M):
             print('\ncurrent Z\n\n')
             print(z_optimal)
 
-    # check if some artificial variable is positive (infeasible solution)
+    # verificar se alguma var artificial nao foi cerada (solução inviável)
     tv = np.size(artificial)
     for i in range(tv):
         if artificial[i] == 1:
             if X[n + i] > 0:
-                print('\ninfeasible solution\n')
+                print('\nSolucao inviavel\n')
                 break
 
     return (z_optimal[0, 0], X)
 
 
-def minWithMask(x, mask):
+def minBlandWithMask(x, mask):
     
     min = 0
     imin = 0
 
     n = np.size(x)
 
+		#Regra de Bland :D >>  se acontece um empate, escolher o menor indice.
     for i in reversed(range(n)):
         if mask[i] == 1:
             if min == 0:
@@ -222,17 +214,16 @@ def minWithMask(x, mask):
 
 
 def repeatColumnNegative(Mat, h):
-    """Repeat column h multiplied by - 1"""
+    # multiplicado por - 1
     (r, c) = Mat.shape
     Mat = np.hstack((Mat[:, 0:h-1], -Mat[:, [h-1]], Mat[:, h-1:c]))
 
     return Mat
 
 
-def insertZeroToCol(col, h):
-    """insert zero to column"""
-    k = np.size(col)
-    col = np.vstack((col[0:h-1, [0]], np.array([[0]]), col[h-1:k, [0]]))
+def colocarZeroToCol(col, h):
+    kpos = np.size(col)
+    col = np.vstack((col[0:h-1, [0]], np.array([[0]]), col[h-1:kpos, [0]]))
 
     return col
 
@@ -242,23 +233,19 @@ if __name__ == '__main__':
     (z, x) = simplex('min', np.array([[-2, 3], [3, 2]]),
                             np.array([[9], [12]]),
                             np.array([[2], [1]]),
-                            np.array([[-1], [-1]]),
+                            np.array([['>='], ['>=']]),
                   100)
 
-		"""Descricao
-		simplex(type, restriccionCoeficients, bi values, Zcoeficients,  )
+"""Descricao
+		simplex( type, A, bi, C, D, M )
     Arguments:
 		
     type -> Pode ser 'max' or 'min'
-    A    -- A matrix of the model (numpy array)
-    B    -- B matrix of the model, column vector (numpy array)
-    C    -- C matrix of the model, column vector (numpy array)
-    D    -- column vector with the types of restrictions of the model (numpy array), 1 is <=, 0 is =, -1 is >=
-            for <= restrictions do nothing
-            for = restrictions add an artificial variables and a big M in the objective
-            function (min --> +M , max --> -M)
-            for >= restrictions multiply by -1
-    M    -- big M value
+    A    -> coeficientes das restricoes agrupados por arrays
+    bi   -> valores bi de cada restricao 
+    C    -> coeficientes da funcao objetivo
+    D    -> simbolos de restricoes (<= , =, >=) 
+    M    -> valor de big M, recomenda-se colocar 0 se nenhuma restricao e >= ou =
     """
 
 #Sample 1
