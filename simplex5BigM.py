@@ -9,7 +9,7 @@ def simplex(type, A, B, C, D, M):
     (m, n)= A.shape	#m = |restricoes| , n = |variables|
     count = n
 
-    # matrix with new variables
+    # matrix com novas vars
     R = np.eye(m)
 
     Btemp = B
@@ -57,25 +57,24 @@ def simplex(type, A, B, C, D, M):
         else:
             print("invalid case")
 
-    # current vertex
+    # Atual vertex
     X = np.vstack((np.zeros((n, 1)), Btemp))
 
-    # add new variables to matrix A
+    # adicionar novas vars a A
     A = np.hstack((A, R))
 
-    # simplex tableau
+    # simplex pela tabela
     st = np.vstack((np.hstack((-np.transpose(C), np.array([[0]]))), np.hstack((A, B))))
 
-    # number of columns
     (rows, cols) = st.shape
 
     # basic_vars = ((n + 1):n+m)'
 
-    print('\nsimplex tableau\n')
+    print('\nSimplex Pela Tabela\n')
     print(st)
-    print('\ncurrent basic variables\n')
+    print('\nAtual vars basicas\n')
     print(basic_vars)
-    print('\noptimal point\n')
+    print('\nPonto Otimo\n')
     print(X)
 
     # check if z != 0 (when there are artificial variables)
@@ -115,7 +114,7 @@ def simplex(type, A, B, C, D, M):
         else:
             iteration = iteration + 1
 
-            print('\n----------------- Iteration {} -------------------\n'.format(iteration))
+            print('\n ********** Iteracao ',iteration ,'********** \n')
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -176,10 +175,10 @@ def simplex(type, A, B, C, D, M):
             z_optimal = cz[0, cols-1] + np.matmul(np.transpose(C), X)
             st[0, cols-1] = z_optimal
 
-            print('\nsimplex tableau\n\n')
+            print('\nSimplex pela Tabela\n')
             print(st)
 
-            print('\ncurrent Z\n\n')
+            print('\natual Z\n\n')
             print(z_optimal)
 
     # verificar se alguma var artificial nao foi cerada (solução inviável)
@@ -228,7 +227,7 @@ def colocarZeroToCol(col, h):
     return col
 
 if __name__ == '__main__':
-
+    print('Simplex Big M pela tabela')
     np.set_printoptions(suppress=True)
     (z, x) = simplex('min', np.array([[-2, 3], [3, 2]]),
                             np.array([[9], [12]]),
