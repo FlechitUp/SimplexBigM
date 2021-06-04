@@ -19,10 +19,10 @@ O método BigM implementado inclui a regra de Bland. Se acontece um empate na ra
     
 ## Exemplos:
 
-  **1) Exercício da atividade 5:** 
-  
-    ![image](https://user-images.githubusercontent.com/9610486/120828555-47420100-c522-11eb-834e-7e5218c5f732.png)
-    
+  **1) Exercício da atividade 5:**   
+    ![image](https://user-images.githubusercontent.com/9610486/120830181-da2f6b00-c523-11eb-854a-8a7337fb8dd0.png)
+
+
     ```
     (z, x) = simplex('max', np.array([[0.5, -5.5, -2.5, -9], [0.5, -1.5, -0.5, 1], [1, 0,0, 0]]), #A 
                             np.array([[0], [0], [1]]),                                            #bi
