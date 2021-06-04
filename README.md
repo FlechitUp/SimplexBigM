@@ -19,20 +19,22 @@ O método BigM implementado inclui a regra de **Bland**. Se acontece um empate n
     
    :exclamation: Não incluir variáveis de folga nem artificiais. 
     
-## :pencil2: Exemplos:
+## :pushpin: Exemplos:
 
   **1) Exercício da atividade 5:**   
     ![image](https://user-images.githubusercontent.com/9610486/120830181-da2f6b00-c523-11eb-854a-8a7337fb8dd0.png)
 
-    O código py é:
-
-    ```
+    O código py:
+	```
     (z, x) = simplex('max', np.array([[0.5, -5.5, -2.5, -9], [0.5, -1.5, -0.5, 1], [1, 0,0, 0]]), #A 
                             np.array([[0], [0], [1]]),                                            #bi
                             np.array([[10], [-57], [-9], [-24]]),                                 #C
-                            np.array([['<='], ['<='], ['<=']]),                                      #D
-                            0)                                                                   #M   
-    ```
+                            np.array([['<='], ['<='], ['<=']]),                                   #D
+                            0)                                                                   #M
+			    ```
+    
+  
+  
   
   **2) Sample:**
   
@@ -59,4 +61,4 @@ O método BigM implementado inclui a regra de **Bland**. Se acontece um empate n
                             np.array([[2], [1]]),        #C
                             np.array([['>='], ['>=']]),  #D
                   100)
-     ```
+    ```
