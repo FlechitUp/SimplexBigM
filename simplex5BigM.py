@@ -243,11 +243,11 @@ def colocarZeroToCol(col, h):
 if __name__ == '__main__':
     print('\n ================= Simplex Big M pela tabela =================\n')
     np.set_printoptions(suppress=True)
-    (z, x) = simplex('min', np.array([[-2, 3], [3, 2]]), #A 
-                            np.array([[9], [12]]),       #bi
-                            np.array([[2], [1]]),        #C
-                            np.array([['>='], ['>=']]),  #D
-                  100)                                   #M
+    (z, x) = simplex('max', np.array([[0.5, -5.5, -2.5, -9], [0.5, -1.5, -0.5, 1], [1, 0,0, 0]]), #A 
+                            np.array([[0], [0], [1]]),                                            #bi
+                            np.array([[10], [-57], [-9], [-24]]),                                 #C
+                            np.array([['<='], ['<='], ['<=']]),                                      #D
+                  0)                                   #M
 
 """Descricao
 		simplex( type, A, bi, C, D, M )
@@ -260,40 +260,3 @@ if __name__ == '__main__':
     D    -> simbolos de restricoes (<= , =, >=) 
     M    -> valor de big M, recomenda-se colocar 0 se nenhuma restricao e >= ou =
     """
-
-#Sample 1
-# min f(x) = 4x1 +x2
-# 3x1 + x2 = 3
-# 4x1 + 3x2 >= 6
-# x1 + 2x2 <= 4
-#M = 100
-
-"""(z, x) = simplex('min', np.array([[3, 1], [4, 3], [1, 2]]),
-                            np.array([[3], [6], [4]]),
-                            np.array([[4], [1]]),
-                            np.array([['='], ['>='], ['<=']]),
-        					100)"""
-    
-
-			
-#Exercicio 5:
-    #M = 0
-
-"""(z, x) = simplex('max', np.array([[0.5, -5.5, -2.5, -9], [0.5, -1.5, -0.5, 1], [1, 0,0, 0]]), #A 
-                            np.array([[0], [0], [1]]),                                            #bi
-                            np.array([[10], [-57], [-9], [-24]]),                                 #C
-                            np.array([['='], ['='], ['=']]),                                      #D
-                  0)"""
-    
-#Sample 2
-# min 4x1+5x2
-# 0.5x1+0.3x2 <=2.67
-# 0.1x1+0.2x2 <=1
-# 0.4x1 +0.5x2 <=3
-# M =100
-
-"""(z, x) = simplex('min', np.array([[0.5, 0.3], [0.1, 0.2], [0.4, 0.5]]),  #A
-                            np.array([[2.67], [1], [3]]),                   #bi
-                            np.array([[4], [5]]),                           #C
-                            np.array([['<='], ['<='], ['<=']]),             #D
-                  100)"""                                                   #M
