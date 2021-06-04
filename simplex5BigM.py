@@ -4,10 +4,30 @@ import warnings
 
 def simplex(type, A, B, C, D, M):
 
+    (m, n)= A.shape	#m = |restricoes| , n = |variables|
+
+    fZ = ''
+    for j in range(0,n):
+        fZ += '+'+str(C[j][0]) if (C[j][0])>0 else str(C[j][0]) 
+        fZ += 'x'+str(j) + ' '
+    print(' Funcao Objetivo: Z =',fZ)
+
+    print(' Restricoes:', m)
+    restricTem = ''
+    for j in range (0, m):
+        restricTem = ''
+        Ri = '  R'+str(j+1)+':'
+        for k in range (0,n):
+            const = '+'+str(A[j][k]) if A[j][k] > 0  else str(A[j][k])
+            restricTem += const+'x'+str(k)+' '
+        restricTem += D[j][0] + str(B[j][0])
+        print(Ri,restricTem)
+
     basic_vars = []
     
-    (m, n)= A.shape	#m = |restricoes| , n = |variables|
+    
     count = n
+    
 
     # matrix com novas vars
     R = np.eye(m)
@@ -18,7 +38,7 @@ def simplex(type, A, B, C, D, M):
 
     for i in range(m):
         if D[i] == '<=':	
-            # agregar a var de folga a Z
+            # agregar uma var de folga a Z
             C = np.vstack((C, [[0]]))
 
             # colocar a var de folga como básica
@@ -28,7 +48,7 @@ def simplex(type, A, B, C, D, M):
             artificial = [artificial, 0]
 
         elif D[i] == '=':
-            # agregar a var artificial a Z com o valor M
+            # agregar uma var artificial a Z com o valor M
             if type == 'min':
                 C = np.vstack((C, [[M]]))
             else:
@@ -70,7 +90,7 @@ def simplex(type, A, B, C, D, M):
 
     # basic_vars = ((n + 1):n+m)'
 
-    print('\nSimplex Pela Tabela\n')
+    print('\n *************** Tabela inicial *************** \n')
     print(st)
     print('\nAtual vars basicas\n')
     print(basic_vars)
@@ -95,26 +115,25 @@ def simplex(type, A, B, C, D, M):
 
     iteration = 0
     while True:
-    # for zz in range(2):
         if type == 'min':
-            # select the more positive value
+            #O valor mais positivo
             w = np.amax(st[0, 0:cols-1])
             iw = np.argmax(st[0, 0:cols-1])
         else:
-            # select the more negative value
+            #O valor mais negativo
             w = np.amin(st[0, 0:cols-1])
             iw = np.argmin(st[0, 0:cols-1])
 
         if w <= 0 and type == 'min':
-            print('\nGlobal optimum point\n')
+            print('\nPonto otimo Final\n')
             break
         elif w >= 0 and type == 'max':
-            print('\nGlobal optimum point\n')
+            print('\nPonto otimo Final\n')
             break
         else:
             iteration = iteration + 1
 
-            print('\n ********** Iteracao ',iteration ,'********** \n')
+            print('\n\n *************** Iteracao',iteration ,'***************')
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -124,17 +143,14 @@ def simplex(type, A, B, C, D, M):
                 # registra inf se o divisor e <= 0
                 Tarr = []
                 for i in range(len(colPivot)):
-                    print('colPivot', i, '->', colPivot[i])
+                    #print('colPivot', i, '->', colPivot[i])
                     if(colPivot[i]) <=0:
                         Tarr.append(np.inf)
                     else:
                         Tarr.append(bi[i]/colPivot[i])
-                #T = st[1:rows, cols-1] / st[1: rows, iw]
                 T = np.array(Tarr)
-                print('T ',T)
             
             R = np.logical_and(T != np.inf, T >= 0)
-            print('R', R)
             
             (k, ik) = minBlandWithMask(T, R)
             #print('k = ', k, ' ik =', ik)
@@ -155,8 +171,7 @@ def simplex(type, A, B, C, D, M):
             #print('b iw',ik, iw)
             basic_vars[ik] = iw
 
-            print('\nAtual variavel basica\n')
-            print(basic_vars)
+            print('\n * Atual variavel basica: ', basic_vars)
 
             basic = st[:, cols-1]
             X = np.zeros((count, 1))
@@ -166,7 +181,7 @@ def simplex(type, A, B, C, D, M):
             for k in range(t):
                 X[basic_vars[k]] = basic[k+1]
 
-            print('\nAtual otimo\n')
+            print('\n * Atual otimo: ')
             print(X)
 
             # Novo resultado de Z
@@ -178,8 +193,7 @@ def simplex(type, A, B, C, D, M):
             print('\nSimplex pela Tabela\n')
             print(st)
 
-            print('\natual Z\n\n')
-            print(z_optimal)
+            print('\n * Atual Z: ', z_optimal)
 
     # verificar se alguma var artificial nao foi cerada (solução inviável)
     tv = np.size(artificial)
@@ -227,13 +241,13 @@ def colocarZeroToCol(col, h):
     return col
 
 if __name__ == '__main__':
-    print('Simplex Big M pela tabela')
+    print('\n ================= Simplex Big M pela tabela =================\n')
     np.set_printoptions(suppress=True)
-    (z, x) = simplex('min', np.array([[-2, 3], [3, 2]]),
-                            np.array([[9], [12]]),
-                            np.array([[2], [1]]),
-                            np.array([['>='], ['>=']]),
-                  100)
+    (z, x) = simplex('min', np.array([[-2, 3], [3, 2]]), #A 
+                            np.array([[9], [12]]),       #bi
+                            np.array([[2], [1]]),        #C
+                            np.array([['>='], ['>=']]),  #D
+                  100)                                   #M
 
 """Descricao
 		simplex( type, A, bi, C, D, M )
